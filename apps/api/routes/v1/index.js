@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const auth = require('../../middleware/auth');
+const jwtAuth = require('../../middleware/jwtAuth');
 const agentAuth = require('../../middleware/agentAuth');
 const serviceAuth = require('../../middleware/serviceAuth');
 const adminAuth = require('../../middleware/adminAuth');
@@ -10,11 +11,17 @@ const walletController = require('../../controllers/v1/wallet');
 const servicesController = require('../../controllers/v1/services');
 const adminController = require('../../controllers/v1/admin');
 const leaderboardController = require('../../controllers/v1/leaderboard');
+const accountController = require('../../controllers/v1/account');
 
 const router = Router();
 
 // Auth
 router.use('/auth', authRoutes);
+
+// Account linking (user-authenticated)
+router.post('/account/link', jwtAuth, accountController.link);
+router.get('/account/links', jwtAuth, accountController.list);
+router.delete('/account/links/:service', jwtAuth, accountController.unlink);
 
 // Public
 router.post('/agents/register', agentsController.register);

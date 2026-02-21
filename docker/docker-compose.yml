@@ -8,7 +8,7 @@ services:
     ports:
       - "5436:5432"
     volumes:
-      - aw_pgdata:/var/lib/postgresql/data
+      - hub_pgdata:/var/lib/postgresql/data
       - ../db/migrations:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U agent_wallet"]
@@ -16,7 +16,7 @@ services:
       timeout: 3s
       retries: 5
 
-  api:
+  hub-api:
     build:
       context: ../apps/api
     ports:
@@ -24,12 +24,22 @@ services:
     environment:
       DATABASE_URL: postgres://agent_wallet:agent_wallet@db:5432/agent_wallet
       JWT_SECRET: dev-secret-change-in-prod
-      ADMIN_EMAIL: admin@agentwallet.com
+      ADMIN_EMAIL: admin@appback.app
       ADMIN_PASSWORD: "!au2222!"
       PORT: 3100
+      GITHUB_CLIENT_ID: ""
+      GITHUB_CLIENT_SECRET: ""
     depends_on:
       db:
         condition: service_healthy
 
+  hub-client:
+    build:
+      context: ../client
+    ports:
+      - "8091:80"
+    depends_on:
+      - hub-api
+
 volumes:
-  aw_pgdata:
+  hub_pgdata:

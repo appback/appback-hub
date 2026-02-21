@@ -1,39 +1,18 @@
 const { Router } = require('express');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const pool = require('../../db');
-const { BadRequestError, UnauthorizedError } = require('../../utils/errors');
+const authController = require('../../controllers/v1/auth');
+const oauthController = require('../../controllers/v1/oauth');
+const jwtAuth = require('../../middleware/jwtAuth');
 
 const router = Router();
 
-router.post('/login', async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      throw new BadRequestError('Email and password required');
-    }
+// Email/password auth
+router.post('/register', authController.register);
+router.post('/login', authController.login);
+router.get('/me', jwtAuth, authController.me);
+router.post('/verify', authController.verify);
 
-    const { rows } = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-    if (rows.length === 0) {
-      throw new UnauthorizedError('Invalid credentials');
-    }
-
-    const user = rows[0];
-    const valid = await bcrypt.compare(password, user.password_hash);
-    if (!valid) {
-      throw new UnauthorizedError('Invalid credentials');
-    }
-
-    const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    res.json({ token, user: { id: user.id, email: user.email, role: user.role } });
-  } catch (err) {
-    next(err);
-  }
-});
+// GitHub OAuth
+router.get('/github', oauthController.githubRedirect);
+router.get('/github/callback', oauthController.githubCallback);
 
 module.exports = router;

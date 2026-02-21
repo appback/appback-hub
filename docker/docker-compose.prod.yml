@@ -1,15 +1,25 @@
 services:
-  api:
-    build:
-      context: ../apps/api
+  hub-api:
+    image: hub-api:latest
     ports:
       - "3100:3100"
     environment:
-      DATABASE_URL: postgres://agent_wallet:${AW_DB_PASSWORD}@db:5432/agent_wallet
-      JWT_SECRET: ${AW_JWT_SECRET}
-      ADMIN_EMAIL: admin@agentwallet.com
-      ADMIN_PASSWORD: ${AW_ADMIN_PASSWORD}
+      DATABASE_URL: postgres://agent_wallet:${HUB_DB_PASSWORD}@db:5432/agent_wallet
+      JWT_SECRET: ${HUB_JWT_SECRET}
+      ADMIN_EMAIL: admin@appback.app
+      ADMIN_PASSWORD: ${HUB_ADMIN_PASSWORD}
       PORT: 3100
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
+      GITHUB_CALLBACK_URL: https://appback.app/api/v1/auth/github/callback
+    restart: unless-stopped
+    networks:
+      - titleclash_default
+
+  hub-client:
+    image: hub-client:latest
+    ports:
+      - "8091:80"
     restart: unless-stopped
     networks:
       - titleclash_default

@@ -48,7 +48,7 @@ async function start() {
   await seedAdmin();
 
   app.listen(PORT, () => {
-    console.log(`Agent Wallet API running on port ${PORT}`);
+    console.log(`Appback Hub API running on port ${PORT}`);
   });
 }
 
