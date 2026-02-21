@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const pool = require('../../db');
 const { BadRequestError, UnauthorizedError, ConflictError } = require('../../utils/errors');
+const bonusService = require('../../services/bonusService');
 
 exports.register = async (req, res, next) => {
   try {
@@ -31,6 +32,9 @@ exports.register = async (req, res, next) => {
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
+
+    // Fire-and-forget signup bonus
+    bonusService.grantSignupBonus(user.id);
 
     res.status(201).json({ user, token });
   } catch (err) {
@@ -94,7 +98,10 @@ exports.me = async (req, res, next) => {
       throw new UnauthorizedError('User not found');
     }
 
-    res.json({ user: rows[0] });
+    // Check daily visit bonus (non-blocking)
+    const bonus = await bonusService.checkDailyVisitBonus(req.user.userId);
+
+    res.json({ user: rows[0], bonus: bonus.granted ? { type: 'daily_visit', amount: bonus.amount, currency: bonus.currency } : null });
   } catch (err) {
     next(err);
   }

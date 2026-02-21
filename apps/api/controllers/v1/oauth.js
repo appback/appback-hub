@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const pool = require('../../db');
 const config = require('../../config');
 const { BadRequestError } = require('../../utils/errors');
+const bonusService = require('../../services/bonusService');
 
 function httpsRequest(url, options, postData) {
   return new Promise((resolve, reject) => {
@@ -148,6 +149,9 @@ exports.githubCallback = async (req, res, next) => {
           [email, ghUser.id, ghUser.login, ghUser.avatar_url, ghUser.name || ghUser.login]
         );
         user = newUser;
+
+        // Fire-and-forget signup bonus
+        bonusService.grantSignupBonus(user.id);
       }
     }
 

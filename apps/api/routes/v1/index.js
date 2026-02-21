@@ -12,6 +12,7 @@ const servicesController = require('../../controllers/v1/services');
 const adminController = require('../../controllers/v1/admin');
 const leaderboardController = require('../../controllers/v1/leaderboard');
 const accountController = require('../../controllers/v1/account');
+const userWalletController = require('../../controllers/v1/userWallet');
 
 const router = Router();
 
@@ -22,6 +23,10 @@ router.use('/auth', authRoutes);
 router.post('/account/link', jwtAuth, accountController.link);
 router.get('/account/links', jwtAuth, accountController.list);
 router.delete('/account/links/:service', jwtAuth, accountController.unlink);
+
+// User wallet (user-authenticated)
+router.get('/user/wallet/balances', jwtAuth, userWalletController.balances);
+router.get('/user/wallet/history', jwtAuth, userWalletController.history);
 
 // Public
 router.post('/agents/register', agentsController.register);
