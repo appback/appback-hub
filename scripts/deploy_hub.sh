@@ -8,7 +8,7 @@ EC2_HOST="appback"
 REMOTE_DIR="/home/ubuntu/appback-hub"
 
 echo "=== Building Docker images ==="
-docker build -t hub-api:latest ./apps/api
+docker build -t hub-api:latest -f ./apps/api/Dockerfile .
 docker build -t hub-client:latest ./client
 
 echo "=== Saving Docker images ==="
