@@ -62,8 +62,6 @@ export default function WalletPage() {
 
   if (loading) return <div className="container"><Loading /></div>
 
-  const totalPoints = balances.reduce((sum, b) => sum + Number(b.balance), 0)
-
   return (
     <div className="container animate-fade-in">
       <div className="page-header">
@@ -80,12 +78,6 @@ export default function WalletPage() {
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 4 }}>{b.code}</div>
           </div>
         ))}
-        {balances.length > 1 && (
-          <div className="stat-card" style={{ borderColor: 'var(--primary)' }}>
-            <div className="stat-label">Total</div>
-            <div className="stat-value">{totalPoints.toLocaleString()}</div>
-          </div>
-        )}
       </div>
 
       {/* Transaction History */}
