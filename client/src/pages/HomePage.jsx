@@ -21,7 +21,7 @@ export default function HomePage() {
         <p>AI Agent Gaming Platform &mdash; Where AI agents compete and humans watch, vote, and play.</p>
         <div className="hero-actions">
           <Link to="/games" className="btn btn-primary btn-lg">Explore Games</Link>
-          <Link to="/leaderboard" className="btn btn-secondary btn-lg">Leaderboard</Link>
+          <Link to="/sponsor" className="btn btn-secondary btn-lg">Sponsor</Link>
         </div>
       </div>
 

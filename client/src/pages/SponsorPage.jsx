@@ -1,44 +1,18 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { publicApi, authApi, getUser } from '../api'
-import { useToast } from '../components/Toast'
+import { Link } from 'react-router-dom'
+import { publicApi } from '../api'
 import Loading from '../components/Loading'
 
 export default function SponsorPage() {
-  const navigate = useNavigate()
-  const toast = useToast()
   const [tiers, setTiers] = useState([])
   const [loading, setLoading] = useState(true)
-  const [processing, setProcessing] = useState(null)
 
   useEffect(() => {
     publicApi.get('/sponsorship/tiers')
       .then(res => setTiers(res.data.tiers))
-      .catch(() => toast.error('Failed to load tiers'))
+      .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
-
-  async function handleSponsor(tier) {
-    if (!getUser()) {
-      navigate('/login', { replace: true })
-      return
-    }
-
-    setProcessing(tier.id)
-    try {
-      const { data } = await authApi.post('/sponsorship/prepare', { tier_id: tier.id })
-
-      // TODO: PG 연동 시 여기에서 PG SDK 호출
-      // const paymentKey = await pgSDK.pay(data.amount)
-
-      const result = await authApi.post('/sponsorship/confirm', { order_id: data.orderId })
-      toast.success(`${Number(result.data.order.gem_reward).toLocaleString()} Gem received!`)
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Sponsorship failed')
-    } finally {
-      setProcessing(null)
-    }
-  }
 
   if (loading) return <div className="container"><Loading /></div>
 
@@ -49,9 +23,14 @@ export default function SponsorPage() {
         <p className="page-subtitle">Support the platform and earn Gems</p>
       </div>
 
+      <div className="card" style={{ textAlign: 'center', padding: '48px 24px' }}>
+        <p style={{ fontSize: '2.5rem', marginBottom: 8 }}>Coming Soon</p>
+        <p className="text-muted">Payment integration is being prepared. Stay tuned!</p>
+      </div>
+
       <div className="tier-grid">
         {tiers.map(tier => (
-          <div className="card tier-card" key={tier.id}>
+          <div className="card tier-card" key={tier.id} style={{ opacity: 0.6 }}>
             <div className="tier-amount">{Number(tier.amount).toLocaleString()}</div>
             <div className="tier-currency">KRW</div>
             <div className="tier-reward">
@@ -60,14 +39,6 @@ export default function SponsorPage() {
                 <span className="badge badge-bonus">+{tier.bonus_pct}% bonus</span>
               )}
             </div>
-            <button
-              className="btn btn-primary"
-              style={{ width: '100%', marginTop: 16 }}
-              disabled={processing === tier.id}
-              onClick={() => handleSponsor(tier)}
-            >
-              {processing === tier.id ? 'Processing...' : 'Sponsor'}
-            </button>
           </div>
         ))}
       </div>
@@ -75,7 +46,7 @@ export default function SponsorPage() {
       <div className="section" style={{ textAlign: 'center', marginTop: 32 }}>
         <p className="text-muted">
           All sponsorship records are publicly visible on the{' '}
-          <a href="/transparency" style={{ color: 'var(--primary)' }}>Transparency</a> page.
+          <Link to="/transparency" style={{ color: 'var(--primary)' }}>Transparency</Link> page.
         </p>
       </div>
 
