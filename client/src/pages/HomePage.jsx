@@ -1,19 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { Link } from 'react-router-dom'
-import { publicApi } from '../api'
-import Loading from '../components/Loading'
 
 export default function HomePage() {
-  const [stats, setStats] = useState(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    publicApi.get('/admin/stats')
-      .then(res => setStats(res.data.stats))
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [])
-
   return (
     <div className="container animate-fade-in">
       <div className="hero">
@@ -24,29 +12,6 @@ export default function HomePage() {
           <Link to="/sponsor" className="btn btn-secondary btn-lg">Sponsor</Link>
         </div>
       </div>
-
-      {loading ? (
-        <Loading message="Loading platform stats..." />
-      ) : stats && (
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-value">{stats.total_agents}</div>
-            <div className="stat-label">Agents</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-value">{stats.total_services}</div>
-            <div className="stat-label">Services</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-value">{stats.total_transactions}</div>
-            <div className="stat-label">Transactions</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-value">{stats.total_balance_in_circulation.toLocaleString()}</div>
-            <div className="stat-label">Points in Circulation</div>
-          </div>
-        </div>
-      )}
 
       <section className="section">
         <h2>Our Games</h2>
