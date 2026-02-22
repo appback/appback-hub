@@ -12,6 +12,8 @@ import GamesPage from './pages/GamesPage'
 import LeaderboardPage from './pages/LeaderboardPage'
 import AdminPage from './pages/AdminPage'
 import AuthCallbackPage from './pages/AuthCallbackPage'
+import SponsorPage from './pages/SponsorPage'
+import TransparencyPage from './pages/TransparencyPage'
 import './styles.css'
 
 const savedTheme = localStorage.getItem('theme') || 'dark'
@@ -30,6 +32,8 @@ createRoot(document.getElementById('root')).render(
             <Route path="/wallet" element={<WalletPage />} />
             <Route path="/games" element={<GamesPage />} />
             <Route path="/leaderboard" element={<LeaderboardPage />} />
+            <Route path="/sponsor" element={<SponsorPage />} />
+            <Route path="/transparency" element={<TransparencyPage />} />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
           </Routes>

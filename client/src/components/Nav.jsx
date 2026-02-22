@@ -24,6 +24,8 @@ export default function Nav() {
         <div className="nav-links">
           <Link to="/games">Games</Link>
           <Link to="/leaderboard">Leaderboard</Link>
+          <Link to="/sponsor">Sponsor</Link>
+          <Link to="/transparency">Transparency</Link>
           {user ? (
             <>
               <Link to="/wallet">Wallet</Link>

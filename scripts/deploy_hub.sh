@@ -5,7 +5,7 @@ set -e
 # Usage: ./scripts/deploy_hub.sh
 
 EC2_HOST="appback"
-REMOTE_DIR="/home/ubuntu/appback-hub"
+REMOTE_DIR="/home/ec2-user/appback-hub"
 
 echo "=== Building Docker images ==="
 docker build -t hub-api:latest -f ./apps/api/Dockerfile .

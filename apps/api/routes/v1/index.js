@@ -13,6 +13,7 @@ const adminController = require('../../controllers/v1/admin');
 const leaderboardController = require('../../controllers/v1/leaderboard');
 const accountController = require('../../controllers/v1/account');
 const userWalletController = require('../../controllers/v1/userWallet');
+const sponsorshipController = require('../../controllers/v1/sponsorship');
 
 const router = Router();
 
@@ -41,6 +42,20 @@ router.post('/wallet/transfer', agentAuth, walletController.transfer);
 // Service-authenticated
 router.post('/wallet/credit', serviceAuth, walletController.credit);
 router.post('/wallet/debit', serviceAuth, walletController.debit);
+
+// Sponsorship — public
+router.get('/sponsorship/tiers', sponsorshipController.tiers);
+router.get('/sponsorship/public/summary', sponsorshipController.publicSummary);
+router.get('/sponsorship/public/history', sponsorshipController.publicHistory);
+router.get('/sponsorship/public/expenses', sponsorshipController.publicExpenses);
+
+// Sponsorship — authenticated
+router.post('/sponsorship/prepare', jwtAuth, sponsorshipController.prepare);
+router.post('/sponsorship/confirm', jwtAuth, sponsorshipController.confirm);
+router.get('/sponsorship/my-history', jwtAuth, sponsorshipController.myHistory);
+
+// Sponsorship — admin
+router.post('/sponsorship/admin/expense', auth, adminAuth, sponsorshipController.addExpense);
 
 // Admin
 router.post('/services', auth, adminAuth, servicesController.create);
