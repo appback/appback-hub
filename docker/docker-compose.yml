@@ -30,6 +30,8 @@ services:
       PORT: 3100
       GITHUB_CLIENT_ID: ""
       GITHUB_CLIENT_SECRET: ""
+      GOOGLE_CLIENT_ID: ""
+      GOOGLE_CLIENT_SECRET: ""
     depends_on:
       db:
         condition: service_healthy

@@ -15,4 +15,8 @@ router.post('/verify', authController.verify);
 router.get('/github', oauthController.githubRedirect);
 router.get('/github/callback', oauthController.githubCallback);
 
+// Google OAuth
+router.get('/google', oauthController.googleRedirect);
+router.get('/google/callback', oauthController.googleCallback);
+
 module.exports = router;

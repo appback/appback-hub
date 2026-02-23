@@ -52,6 +52,147 @@ exports.githubRedirect = (req, res) => {
   res.redirect(`https://github.com/login/oauth/authorize?${params}`);
 };
 
+exports.googleRedirect = (req, res) => {
+  const { redirect } = req.query;
+
+  if (!config.googleClientId) {
+    throw new BadRequestError('Google OAuth not configured');
+  }
+
+  let finalRedirect = 'https://appback.app';
+  if (redirect) {
+    const allowed = config.allowedRedirects.some(u => redirect.startsWith(u));
+    if (allowed) finalRedirect = redirect;
+  }
+
+  const state = Buffer.from(JSON.stringify({ redirect: finalRedirect })).toString('base64url');
+
+  const params = new URLSearchParams({
+    client_id: config.googleClientId,
+    redirect_uri: config.googleCallbackUrl,
+    response_type: 'code',
+    scope: 'openid email profile',
+    state
+  });
+
+  res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params}`);
+};
+
+exports.googleCallback = async (req, res, next) => {
+  try {
+    const { code, state } = req.query;
+    if (!code) {
+      throw new BadRequestError('Missing authorization code');
+    }
+
+    // Exchange code for tokens
+    const tokenPayload = new URLSearchParams({
+      code,
+      client_id: config.googleClientId,
+      client_secret: config.googleClientSecret,
+      redirect_uri: config.googleCallbackUrl,
+      grant_type: 'authorization_code'
+    }).toString();
+
+    const tokenRes = await httpsRequest('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Length': Buffer.byteLength(tokenPayload)
+      }
+    }, tokenPayload);
+
+    const accessToken = tokenRes.data.access_token;
+    if (!accessToken) {
+      throw new BadRequestError('Failed to get access token from Google');
+    }
+
+    // Get user info
+    const userRes = await httpsRequest('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Accept': 'application/json'
+      }
+    });
+
+    const gUser = userRes.data;
+    const email = gUser.email;
+    const googleId = String(gUser.id);
+
+    // Find or create user
+    let user;
+    const { rows: existing } = await pool.query(
+      'SELECT * FROM users WHERE google_id = $1', [googleId]
+    );
+
+    if (existing.length > 0) {
+      user = existing[0];
+      await pool.query(
+        'UPDATE users SET avatar_url = COALESCE($1, avatar_url) WHERE id = $2',
+        [gUser.picture, user.id]
+      );
+      user.avatar_url = gUser.picture || user.avatar_url;
+    } else {
+      // Check if email already exists (merge accounts)
+      if (email) {
+        const { rows: emailMatch } = await pool.query(
+          'SELECT * FROM users WHERE email = $1', [email]
+        );
+        if (emailMatch.length > 0) {
+          user = emailMatch[0];
+          await pool.query(
+            'UPDATE users SET google_id = $1, avatar_url = COALESCE(avatar_url, $2), display_name = COALESCE(display_name, $3) WHERE id = $4',
+            [googleId, gUser.picture, gUser.name, user.id]
+          );
+          user.google_id = googleId;
+        }
+      }
+
+      if (!user) {
+        const { rows: [newUser] } = await pool.query(
+          `INSERT INTO users (email, google_id, avatar_url, display_name, role)
+           VALUES ($1, $2, $3, $4, 'player')
+           RETURNING *`,
+          [email, googleId, gUser.picture, gUser.name]
+        );
+        user = newUser;
+        bonusService.grantSignupBonus(user.id);
+      }
+    }
+
+    // Issue JWT
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+        displayName: user.display_name
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    // Parse redirect from state
+    let redirectUrl = 'https://appback.app';
+    if (state) {
+      try {
+        const parsed = JSON.parse(Buffer.from(state, 'base64url').toString());
+        if (parsed.redirect) {
+          const allowed = config.allowedRedirects.some(u => parsed.redirect.startsWith(u));
+          if (allowed) redirectUrl = parsed.redirect;
+        }
+      } catch {
+        // ignore bad state
+      }
+    }
+
+    const separator = redirectUrl.includes('?') ? '&' : '?';
+    res.redirect(`${redirectUrl}${separator}token=${token}`);
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.githubCallback = async (req, res, next) => {
   try {
     const { code, state } = req.query;
